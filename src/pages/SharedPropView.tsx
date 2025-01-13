@@ -21,27 +21,57 @@ export default function SharedPropView() {
   const [prediction, setPrediction] = useState<boolean | null>(null);
   const [bananas, setBananas] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchProp = async () => {
       if (!id) return;
 
-      const { data, error } = await supabase
-        .from('chimp_props')
-        .select('*')
-        .eq('id', id)
-        .single();
+      try {
+        setLoading(true);
+        setError('');
 
-      if (error) {
-        setError('Prop not found');
-        return;
+        // First try to get the prop without any filters
+        const { data, error: fetchError } = await supabase
+          .from('chimp_props')
+          .select()
+          .eq('id', id)
+          .maybeSingle();
+
+        if (fetchError) {
+          console.error('Error fetching prop:', fetchError);
+          setError('Failed to load prop');
+          return;
+        }
+
+        if (!data) {
+          setError('Prop not found');
+          return;
+        }
+
+        // Check if the prop is deleted
+        if (data.deleted_at) {
+          setError('This prop is no longer available');
+          return;
+        }
+
+        // If user is the creator, redirect to the prop details page
+        if (user && data.creator_id === user.id) {
+          navigate(`/prop/${id}`);
+          return;
+        }
+
+        setProp(data);
+      } catch (err) {
+        console.error('Error fetching prop:', err);
+        setError('Failed to load prop');
+      } finally {
+        setLoading(false);
       }
-
-      setProp(data);
     };
 
     fetchProp();
-  }, [id]);
+  }, [id, user, navigate]);
 
   const handleBet = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,6 +125,14 @@ export default function SharedPropView() {
       setBananas(savedBananas);
     }
   }, [user]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-yellow-50 flex items-center justify-center">
+        <div className="text-yellow-900">Loading...</div>
+      </div>
+    );
+  }
 
   if (error) {
     return (

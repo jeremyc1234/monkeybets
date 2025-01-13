@@ -4,13 +4,14 @@ import { supabase } from '../lib/supabase';
 interface User {
   id: string;
   phone: string;
+  phone_verified: boolean;
 }
 
 interface AuthState {
   user: User | null;
   loading: boolean;
-  signIn: (phone: string, pin: string) => Promise<void>;
-  signUp: (phone: string, pin: string) => Promise<void>;
+  signIn: (phone: string) => Promise<void>;
+  signUp: (phone: string) => Promise<void>;
   signOut: () => void;
   checkAuth: () => Promise<void>;
 }
@@ -18,46 +19,69 @@ interface AuthState {
 export const useAuth = create<AuthState>((set) => ({
   user: null,
   loading: true,
-  signIn: async (phone: string, pin: string) => {
+  signIn: async (phone: string) => {
     try {
-      const { data, error } = await supabase
+      // Format phone number to ensure consistent format
+      const formattedPhone = `+1${phone.replace(/[^\d]/g, '')}`;
+      
+      // Get the user data from the monkeys table first
+      const { data: existingUser, error: userError } = await supabase
         .from('monkeys')
-        .select('id, phone')
-        .eq('phone', phone)
-        .eq('pin_hash', pin)
-        .single();
+        .select('id, phone, phone_verified')
+        .eq('phone', formattedPhone)
+        .maybeSingle();
 
-      if (error) throw new Error('Authentication failed');
-      if (!data) throw new Error('Invalid phone number or PIN');
+      if (userError) throw userError;
+      if (!existingUser) {
+        throw new Error('Account not found. Please sign up first.');
+      }
 
-      set({ user: data });
-      localStorage.setItem('user', JSON.stringify(data));
+      // Update phone_verified status if not already verified
+      if (!existingUser.phone_verified) {
+        const { error: updateError } = await supabase
+          .from('monkeys')
+          .update({ phone_verified: true })
+          .eq('id', existingUser.id);
+
+        if (updateError) throw updateError;
+        existingUser.phone_verified = true;
+      }
+
+      // Set the user in state
+      set({ user: existingUser });
+      localStorage.setItem('user', JSON.stringify(existingUser));
     } catch (err) {
-      throw new Error('Invalid phone number or PIN');
+      if (err instanceof Error) throw err;
+      throw new Error('Authentication failed');
     }
   },
-  signUp: async (phone: string, pin: string) => {
+  signUp: async (phone: string) => {
     try {
+      // Format phone number to ensure consistent format
+      const formattedPhone = `+1${phone.replace(/[^\d]/g, '')}`;
+      
+      // Check if phone number already exists
       const { data: existing } = await supabase
         .from('monkeys')
         .select('id')
-        .eq('phone', phone)
+        .eq('phone', formattedPhone)
         .maybeSingle();
 
       if (existing) {
         throw new Error('Phone number already registered');
       }
 
+      // Create new user in monkeys table
       const { data, error } = await supabase
         .from('monkeys')
         .insert([{ 
-          phone, 
-          pin_hash: pin 
+          phone: formattedPhone,
+          phone_verified: true
         }])
-        .select('id, phone')
+        .select('id, phone, phone_verified')
         .single();
 
-      if (error) throw new Error('Failed to create account');
+      if (error) throw error;
       if (!data) throw new Error('Failed to create account');
 
       set({ user: data });
@@ -78,7 +102,7 @@ export const useAuth = create<AuthState>((set) => ({
         const user = JSON.parse(storedUser);
         const { data } = await supabase
           .from('monkeys')
-          .select('id, phone')
+          .select('id, phone, phone_verified')
           .eq('id', user.id)
           .single();
 
