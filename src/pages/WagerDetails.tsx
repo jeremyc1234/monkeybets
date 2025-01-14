@@ -11,13 +11,16 @@ interface ChimpProp {
     expiry_date: string;
     creator_id: string;
     result: boolean | null;
+    deleted_at: string | null;  // Add this line
 }
 
 interface Bet {
     id: string;
+    prop_id: string;
     prediction: boolean;
     bananas: number;
     monkey_id: string;
+    prop_name: string;  // Add this line
 }
 
 export default function WagerDetails() {
@@ -109,6 +112,37 @@ export default function WagerDetails() {
     };
 
     if (!prop) return <div>Loading...</div>;
+
+    if (prop.deleted_at) {
+        return (
+            <div className="max-w-4xl mx-auto">
+                <div className="mb-6">
+                    <Link
+                        to="/"
+                        className="inline-flex items-center gap-2 text-yellow-600 hover:text-yellow-800"
+                    >
+                        <span>←</span>
+                        <span>Back to Home</span>
+                    </Link>
+                </div>
+                <div className="bg-white shadow-md rounded-lg p-6">
+                    <div className="text-center">
+                        <h1 className="text-2xl font-bold text-gray-700 mb-4">
+                            {userBet?.prop_name || 'This Monkey Prop'} has been deleted
+                        </h1>
+                        <p className="text-gray-600 mb-4">The creator has deleted this prop.</p>
+                        {userBet && (
+                            <div className="bg-gray-50 p-4 rounded-lg inline-block">
+                                <p className="text-gray-700">Original prop name: {userBet.prop_name}</p>
+                                <p className="text-gray-700">Your wager: {userBet.bananas} bananas</p>
+                                <p className="text-gray-700">Your prediction: {userBet.prediction ? 'Yes' : 'No'}</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     const isExpired = new Date(prop.expiry_date) < new Date();
     const totalYesBananas = bets.filter(b => b.prediction).reduce((sum, b) => sum + b.bananas, 0);

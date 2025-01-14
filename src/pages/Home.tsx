@@ -20,15 +20,7 @@ interface Bet {
   prediction: boolean;
   bananas: number;
   chimp_props: ChimpProp;
-}
-
-// Add a type for the raw Supabase response
-interface RawBetData {
-  id: string;
-  prop_id: string;
-  prediction: boolean;
-  bananas: number;
-  chimp_props: ChimpProp[];  // Supabase returns this as an array
+  prop_name: string;  // Add this line
 }
 
 // Function to calculate American odds
@@ -258,57 +250,69 @@ export default function Home() {
       {createdProps.length > 0 && (
         <section>
           <h2 className="text-2xl font-bold text-yellow-900 mb-6">Banana Bets You've Created</h2>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {createdProps.map((prop) => (
+          {createdProps.length > 0 ? (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {createdProps.map((prop) => (
+                <Link
+                  key={prop.id}
+                  to={`/prop/${prop.id}`}
+                  className="block bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow border-l-4 border-green-400 relative group"
+                >
+                  <div className="absolute top-4 right-4">
+                    <button
+                      onClick={(e) => handleDelete(prop.id, e)}
+                      className="text-red-600 hover:text-red-800 relative"
+                      title="Delete Prop"
+                    >
+                      <Trash2 className="h-5 w-5" />
+                      <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                        Delete Prop
+                      </span>
+                    </button>
+                  </div>
+                  <h3 className="text-lg font-semibold text-yellow-900 mb-2 pr-20">{prop.name}</h3>
+                  <div className="space-y-2">
+                    <p className="text-gray-600">
+                      Expires: {format(new Date(prop.expiry_date), 'PPP')}
+                    </p>
+                    {propOdds[prop.id] && (
+                      <div className="flex space-x-4 mt-2">
+                        <span className="text-green-600 font-medium">
+                          Yes: {propOdds[prop.id].yesOdds}
+                        </span>
+                        <span className="text-red-600 font-medium">
+                          No: {propOdds[prop.id].noOdds}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="absolute bottom-4 right-4">
+                    <button
+                      onClick={(e) => handleCopyLink(prop.id, e)}
+                      className="flex items-center gap-1 text-yellow-600 hover:text-yellow-800 relative px-2 py-1 rounded-md hover:bg-yellow-50 border border-yellow-600"
+                      title={copyTooltip[prop.id]}
+                    >
+                      <Share2 className="h-5 w-5" />
+                      <span className="text-sm">Send to other monkeys</span>
+                      <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                        {copyTooltip[prop.id]}
+                      </span>
+                    </button>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-white p-6 rounded-lg shadow-md text-center">
+              <p className="text-gray-600 mb-4">You haven't created any banana bets yet.</p>
               <Link
-                key={prop.id}
-                to={`/prop/${prop.id}`}
-                className="block bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow border-l-4 border-green-400 relative group"
+                to="/create"
+                className="inline-block px-6 py-2 bg-yellow-400 text-yellow-900 rounded-md hover:bg-yellow-300 transition-colors"
               >
-                <div className="absolute top-4 right-4">
-                  <button
-                    onClick={(e) => handleDelete(prop.id, e)}
-                    className="text-red-600 hover:text-red-800 relative"
-                    title="Delete Prop"
-                  >
-                    <Trash2 className="h-5 w-5" />
-                    <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                      Delete Prop
-                    </span>
-                  </button>
-                </div>
-                <h3 className="text-lg font-semibold text-yellow-900 mb-2 pr-20">{prop.name}</h3>
-                <div className="space-y-2">
-                  <p className="text-gray-600">
-                    Expires: {format(new Date(prop.expiry_date), 'PPP')}
-                  </p>
-                  {propOdds[prop.id] && (
-                    <div className="flex space-x-4 mt-2">
-                      <span className="text-green-600 font-medium">
-                        Yes: {propOdds[prop.id].yesOdds}
-                      </span>
-                      <span className="text-red-600 font-medium">
-                        No: {propOdds[prop.id].noOdds}
-                      </span>
-                    </div>
-                  )}
-                </div>
-                <div className="absolute bottom-4 right-4">
-                  <button
-                    onClick={(e) => handleCopyLink(prop.id, e)}
-                    className="flex items-center gap-1 text-yellow-600 hover:text-yellow-800 relative px-2 py-1 rounded-md hover:bg-yellow-50 border border-yellow-600"
-                    title={copyTooltip[prop.id]}
-                  >
-                    <Share2 className="h-5 w-5" />
-                    <span className="text-sm">Send to other monkeys</span>
-                    <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                      {copyTooltip[prop.id]}
-                    </span>
-                  </button>
-                </div>
+                Create a Prop
               </Link>
-            ))}
-          </div>
+            </div>
+          )}
         </section>
       )}
 
@@ -321,31 +325,48 @@ export default function Home() {
               <Link
                 key={bet.id}
                 to={`/bet/${bet.prop_id}`}
-                className="block bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow border-l-4 border-yellow-400"
+                className={`block bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow border-l-4 
+      ${bet.chimp_props?.deleted_at ? 'border-gray-400 opacity-60' : 'border-yellow-400'}`}
               >
-                <h3 className="text-lg font-semibold text-yellow-900 mb-2">
-                  {bet.chimp_props?.name || 'Unknown Prop'}
-                </h3>
-                <div className="space-y-2 text-sm text-gray-600">
-                  <p>
-                    Your Prediction: <span className={bet.prediction ? 'text-green-600 font-medium' : 'text-red-600 font-medium'}>
-                      {bet.prediction ? 'Yes' : 'No'}
-                    </span>
-                  </p>
-                  <p>
-                    Bananas Wagered: <span className="font-medium">{bet.bananas}</span>
-                  </p>
-                  {bet.chimp_props?.expiry_date && (
-                    <p>
-                      Expires: {format(new Date(bet.chimp_props.expiry_date), 'PPP')}
-                    </p>
-                  )}
-                  {propOdds[bet.prop_id] && (
-                    <p className="font-medium text-yellow-900">
-                      Your Odds: {bet.prediction ? propOdds[bet.prop_id].yesOdds : propOdds[bet.prop_id].noOdds}
-                    </p>
-                  )}
-                </div>
+                {bet.chimp_props?.deleted_at ? (
+                  <div className="text-gray-500">
+                    <h3 className="text-lg font-semibold mb-2">Deleted: {bet.prop_name}</h3>
+                    <div className="space-y-2 text-sm">
+                      <p>
+                        Your Prediction: <span className={bet.prediction ? 'text-green-600 font-medium' : 'text-red-600 font-medium'}>
+                          {bet.prediction ? 'Yes' : 'No'}
+                        </span>
+                      </p>
+                      <p>Bananas Wagered: <span className="font-medium">{bet.bananas}</span></p>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <h3 className="text-lg font-semibold text-yellow-900 mb-2">
+                      {bet.chimp_props?.name || 'Unknown Prop'}
+                    </h3>
+                    <div className="space-y-2 text-sm text-gray-600">
+                      <p>
+                        Your Prediction: <span className={bet.prediction ? 'text-green-600 font-medium' : 'text-red-600 font-medium'}>
+                          {bet.prediction ? 'Yes' : 'No'}
+                        </span>
+                      </p>
+                      <p>
+                        Bananas Wagered: <span className="font-medium">{bet.bananas}</span>
+                      </p>
+                      {bet.chimp_props?.expiry_date && (
+                        <p>
+                          Expires: {format(new Date(bet.chimp_props.expiry_date), 'PPP')}
+                        </p>
+                      )}
+                      {propOdds[bet.prop_id] && (
+                        <p className="font-medium text-yellow-900">
+                          Your Odds: {bet.prediction ? propOdds[bet.prop_id].yesOdds : propOdds[bet.prop_id].noOdds}
+                        </p>
+                      )}
+                    </div>
+                  </>
+                )}
               </Link>
             ))}
           </div>
