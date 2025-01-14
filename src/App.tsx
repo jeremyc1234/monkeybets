@@ -6,6 +6,7 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import CreateProp from './pages/CreateProp';
 import PropDetails from './pages/PropDetails';
+import WagerDetails from './pages/WagerDetails';
 import SharedPropView from './pages/SharedPropView';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -20,6 +21,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/create" element={<CreateProp />} />
             <Route path="/prop/:id" element={<PropDetails />} />
+            <Route path="/bet/:id" element={<WagerDetails />} />
           </Route>
         </Route>
       </Routes>

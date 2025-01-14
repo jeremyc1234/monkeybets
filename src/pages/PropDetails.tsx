@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { Trash2, Share2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
@@ -144,11 +144,20 @@ export default function PropDetails() {
     <div className="max-w-4xl mx-auto">
       <div className="bg-white shadow-md rounded-lg p-6">
         <div className="flex justify-between items-start mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-yellow-900">{prop.name}</h1>
-            <p className="text-gray-600 mt-2">
-              Expires: {format(new Date(prop.expiry_date), 'PPP pp')}
-            </p>
+          <div className="flex flex-col gap-4">
+            <Link
+              to="/"
+              className="inline-flex items-center gap-2 text-yellow-600 hover:text-yellow-800"
+            >
+              <span>←</span>
+              <span>Back to Home</span>
+            </Link>
+            <div>
+              <h1 className="text-3xl font-bold text-yellow-900">{prop.name}</h1>
+              <p className="text-gray-600 mt-2">
+                Expires: {format(new Date(prop.expiry_date), 'PPP pp')}
+              </p>
+            </div>
           </div>
           <div className="flex space-x-4">
             {isCreator && !isExpired && !prop.result && (
@@ -162,13 +171,11 @@ export default function PropDetails() {
             {isCreator && (
               <button
                 onClick={handleShare}
-                className="text-yellow-600 hover:text-yellow-800 relative group"
+                className="flex items-center gap-1 text-yellow-600 hover:text-yellow-800 relative px-2 py-1 rounded-md hover:bg-yellow-50 border border-yellow-600"
                 title={shareTooltip}
               >
                 <Share2 className="h-5 w-5" />
-                <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-                  {shareTooltip}
-                </span>
+                <span className="text-sm">Send to other monkeys</span>
               </button>
             )}
           </div>
@@ -226,22 +233,20 @@ export default function PropDetails() {
                 <button
                   type="button"
                   onClick={() => setPrediction(true)}
-                  className={`flex-1 py-2 px-4 rounded-md ${
-                    prediction === true
+                  className={`flex-1 py-2 px-4 rounded-md ${prediction === true
                       ? 'bg-green-500 text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
+                    }`}
                 >
                   Yes
                 </button>
                 <button
                   type="button"
                   onClick={() => setPrediction(false)}
-                  className={`flex-1 py-2 px-4 rounded-md ${
-                    prediction === false
+                  className={`flex-1 py-2 px-4 rounded-md ${prediction === false
                       ? 'bg-red-500 text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
+                    }`}
                 >
                   No
                 </button>

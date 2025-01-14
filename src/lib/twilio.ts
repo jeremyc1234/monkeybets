@@ -1,13 +1,13 @@
 import { supabase } from './supabase';
 
-const TWILIO_ACCOUNT_SID = import.meta.env.TWILIO_ACCOUNT_SID;
-const TWILIO_AUTH_TOKEN = import.meta.env.TWILIO_AUTH_TOKEN;
-const TWILIO_VERIFY_SID = import.meta.env.TWILIO_VERIFY_SID;
+const TWILIO_ACCOUNT_SID = import.meta.env.VITE_TWILIO_ACCOUNT_SID;
+const TWILIO_AUTH_TOKEN = import.meta.env.VITE_TWILIO_AUTH_TOKEN;
+const TWILIO_VERIFY_SID = import.meta.env.VITE_TWILIO_VERIFY_SID;
 
 function formatPhoneNumber(phone: string): string {
   // Remove all non-digit characters
   const cleaned = phone.replace(/[^\d]/g, '');
-  
+
   // If number starts with 1, add +, otherwise add +1
   if (cleaned.startsWith('1')) {
     return `+${cleaned}`;
@@ -17,13 +17,13 @@ function formatPhoneNumber(phone: string): string {
 
 export async function sendVerificationCode(phoneNumber: string): Promise<void> {
   const formattedPhone = formatPhoneNumber(phoneNumber);
-  
+
   // Validate US phone number format (10 digits after potential 1)
   const digitsOnly = formattedPhone.replace(/[^\d]/g, '');
   if (digitsOnly.length !== 10 && digitsOnly.length !== 11) {
     throw new Error('Please enter a valid 10-digit US phone number');
   }
-  
+
   try {
     const response = await fetch(`https://verify.twilio.com/v2/Services/${TWILIO_VERIFY_SID}/Verifications`, {
       method: 'POST',
@@ -50,7 +50,7 @@ export async function sendVerificationCode(phoneNumber: string): Promise<void> {
 
 export async function verifyCode(phoneNumber: string, code: string): Promise<boolean> {
   const formattedPhone = formatPhoneNumber(phoneNumber);
-  
+
   try {
     const response = await fetch(`https://verify.twilio.com/v2/Services/${TWILIO_VERIFY_SID}/VerificationCheck`, {
       method: 'POST',

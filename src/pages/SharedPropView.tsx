@@ -56,10 +56,10 @@ export default function SharedPropView() {
         }
 
         // If user is the creator, redirect to the prop details page
-        if (user && data.creator_id === user.id) {
-          navigate(`/prop/${id}`);
-          return;
-        }
+        // if (user && data.creator_id === user.id) {
+        //   navigate(`/prop/${id}`);
+        //   return;
+        // }
 
         setProp(data);
       } catch (err) {
@@ -75,7 +75,7 @@ export default function SharedPropView() {
 
   const handleBet = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // If user is not logged in, redirect to login with return URL
     if (!user) {
       // Store bet details in session storage
@@ -106,7 +106,7 @@ export default function SharedPropView() {
         ]);
 
       if (betError) throw betError;
-      
+
       // Clear any stored pending bet
       sessionStorage.removeItem('pendingBet');
       // Redirect to dashboard
@@ -163,10 +163,19 @@ export default function SharedPropView() {
 
   return (
     <div className="min-h-screen bg-yellow-50 flex flex-col items-center justify-center p-4">
+      <div className="max-w-md w-full mb-4">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-2 text-yellow-600 hover:text-yellow-800"
+        >
+          <span>←</span>
+          <span>Back to Home</span>
+        </Link>
+      </div>
       <div className="max-w-md w-full bg-white rounded-lg shadow-md p-6">
         <Banana className="h-8 w-8 text-yellow-900 mx-auto mb-4" />
         <h1 className="text-2xl font-bold text-yellow-900 text-center mb-6">{prop.name}</h1>
-        
+
         <p className="text-gray-600 text-center mb-8">
           Expires: {format(new Date(prop.expiry_date), 'PPP pp')}
         </p>
@@ -185,22 +194,20 @@ export default function SharedPropView() {
                 <button
                   type="button"
                   onClick={() => setPrediction(true)}
-                  className={`flex-1 py-2 px-4 rounded-md ${
-                    prediction === true
-                      ? 'bg-green-500 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
+                  className={`flex-1 py-2 px-4 rounded-md ${prediction === true
+                    ? 'bg-green-500 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
                 >
                   Yes
                 </button>
                 <button
                   type="button"
                   onClick={() => setPrediction(false)}
-                  className={`flex-1 py-2 px-4 rounded-md ${
-                    prediction === false
-                      ? 'bg-red-500 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
+                  className={`flex-1 py-2 px-4 rounded-md ${prediction === false
+                    ? 'bg-red-500 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
                 >
                   No
                 </button>

@@ -22,11 +22,20 @@ interface Bet {
   chimp_props: ChimpProp;
 }
 
+// Add a type for the raw Supabase response
+interface RawBetData {
+  id: string;
+  prop_id: string;
+  prediction: boolean;
+  bananas: number;
+  chimp_props: ChimpProp[];  // Supabase returns this as an array
+}
+
 // Function to calculate American odds
 function calculateAmericanOdds(probability: number): string {
   if (probability === 0) return '+∞';
   if (probability === 1) return '-∞';
-  
+
   if (probability > 0.5) {
     // Negative odds (favorites)
     return Math.round(-100 * (probability / (1 - probability))).toString();
@@ -47,10 +56,10 @@ export default function Home() {
   const handleCopyLink = async (propId: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     const shareUrl = `${window.location.origin}/wager/${propId}`;
     await navigator.clipboard.writeText(shareUrl);
-    
+
     setCopyTooltip(prev => ({ ...prev, [propId]: 'Copied!' }));
     setTimeout(() => {
       setCopyTooltip(prev => ({ ...prev, [propId]: 'Copy Link' }));
@@ -58,31 +67,31 @@ export default function Home() {
   };
 
   const handleDelete = async (propId: string, e: React.MouseEvent) => {
-  e.preventDefault();
-  e.stopPropagation();
+    e.preventDefault();
+    e.stopPropagation();
 
-  if (!window.confirm('Are you sure you want to delete this prop?')) return;
+    if (!window.confirm('Are you sure you want to delete this prop?')) return;
 
-  try {
-    console.log('Attempting delete with:', { propId, userId: user?.id });
-    
-    const { data, error } = await supabase
-      .rpc('soft_delete_prop', {
-        prop_id: propId,  // Already a string
-        user_id: user?.id // Already a string
-      });
+    try {
+      console.log('Attempting delete with:', { propId, userId: user?.id });
 
-    console.log('RPC response:', { data, error });
+      const { data, error } = await supabase
+        .rpc('soft_delete_prop', {
+          prop_id: propId,  // Already a string
+          user_id: user?.id // Already a string
+        });
 
-    if (error) throw error;
+      console.log('RPC response:', { data, error });
 
-    // Update local state
-    setCreatedProps(prev => prev.filter(prop => prop.id !== propId));
-  } catch (error) {
-    console.error('Error deleting prop:', error);
-    alert('Failed to delete prop');
-  }
-};
+      if (error) throw error;
+
+      // Update local state
+      setCreatedProps(prev => prev.filter(prop => prop.id !== propId));
+    } catch (error) {
+      console.error('Error deleting prop:', error);
+      alert('Failed to delete prop');
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -90,7 +99,7 @@ export default function Home() {
 
       try {
         setLoading(true);
-        
+
         // Fetch created props
         const { data: propsData, error: propsError } = await supabase
           .from('chimp_props')
@@ -114,24 +123,37 @@ export default function Home() {
         const { data: betsData, error: betsError } = await supabase
           .from('bets')
           .select(`
-            id,
-            prop_id,
-            prediction,
-            bananas,
-            chimp_props (
-              id,
-              name,
-              expiry_date,
-              creator_id
-            )
-          `)
+    *,
+    chimp_props (*)
+  `)
           .eq('monkey_id', user.id)
           .is('chimp_props.result', null)
           .is('chimp_props.deleted_at', null)
           .order('created_at', { ascending: false });
 
         if (betsError) throw betsError;
-        setActiveBets(betsData || []);
+
+        // Transform the data to match our Bet interface with safe handling of null values
+        const transformedBetsData = (betsData || []).map(bet => {
+          if (!bet.chimp_props) {
+            console.error('Missing chimp_props for bet:', bet);
+            return {
+              ...bet,
+              chimp_props: {
+                id: bet.prop_id,
+                name: `Prop #${bet.prop_id}`,
+                expiry_date: new Date().toISOString(),
+                creator_id: '',
+                result: null,
+                deleted_at: null
+              }
+            };
+          }
+          return bet;
+        });
+
+        setActiveBets(transformedBetsData);
+        console.log('Transformed Bets Data:', transformedBetsData);
 
         // Fetch all bets for odds calculation
         const { data: allBetsData } = await supabase
@@ -140,7 +162,7 @@ export default function Home() {
 
         if (allBetsData) {
           const odds: Record<string, { yesOdds: string, noOdds: string }> = {};
-          
+
           // Group bets by prop
           const propBets = allBetsData.reduce((acc, bet) => {
             if (!acc[bet.prop_id]) {
@@ -235,7 +257,7 @@ export default function Home() {
       {/* Created Props Section - Now shown first */}
       {createdProps.length > 0 && (
         <section>
-          <h2 className="text-2xl font-bold text-yellow-900 mb-6">Active Chimp Props You've Created</h2>
+          <h2 className="text-2xl font-bold text-yellow-900 mb-6">Banana Bets You've Created</h2>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {createdProps.map((prop) => (
               <Link
@@ -243,17 +265,7 @@ export default function Home() {
                 to={`/prop/${prop.id}`}
                 className="block bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow border-l-4 border-green-400 relative group"
               >
-                <div className="absolute top-4 right-4 flex space-x-2">
-                  <button
-                    onClick={(e) => handleCopyLink(prop.id, e)}
-                    className="text-yellow-600 hover:text-yellow-800 relative"
-                    title={copyTooltip[prop.id]}
-                  >
-                    <Share2 className="h-5 w-5" />
-                    <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                      {copyTooltip[prop.id]}
-                    </span>
-                  </button>
+                <div className="absolute top-4 right-4">
                   <button
                     onClick={(e) => handleDelete(prop.id, e)}
                     className="text-red-600 hover:text-red-800 relative"
@@ -281,6 +293,19 @@ export default function Home() {
                     </div>
                   )}
                 </div>
+                <div className="absolute bottom-4 right-4">
+                  <button
+                    onClick={(e) => handleCopyLink(prop.id, e)}
+                    className="flex items-center gap-1 text-yellow-600 hover:text-yellow-800 relative px-2 py-1 rounded-md hover:bg-yellow-50 border border-yellow-600"
+                    title={copyTooltip[prop.id]}
+                  >
+                    <Share2 className="h-5 w-5" />
+                    <span className="text-sm">Send to other monkeys</span>
+                    <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                      {copyTooltip[prop.id]}
+                    </span>
+                  </button>
+                </div>
               </Link>
             ))}
           </div>
@@ -289,17 +314,17 @@ export default function Home() {
 
       {/* Active Bets Section */}
       <section>
-        <h2 className="text-2xl font-bold text-yellow-900 mb-6">Active Banana Wagers</h2>
+        <h2 className="text-2xl font-bold text-yellow-900 mb-6">Your Banana Wagers</h2>
         {activeBets.length > 0 ? (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {activeBets.map((bet) => (
               <Link
                 key={bet.id}
-                to={`/prop/${bet.prop_id}`}
+                to={`/bet/${bet.prop_id}`}
                 className="block bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow border-l-4 border-yellow-400"
               >
                 <h3 className="text-lg font-semibold text-yellow-900 mb-2">
-                  {bet.chimp_props.name}
+                  {bet.chimp_props?.name || 'Unknown Prop'}
                 </h3>
                 <div className="space-y-2 text-sm text-gray-600">
                   <p>
@@ -310,9 +335,11 @@ export default function Home() {
                   <p>
                     Bananas Wagered: <span className="font-medium">{bet.bananas}</span>
                   </p>
-                  <p>
-                    Expires: {format(new Date(bet.chimp_props.expiry_date), 'PPP')}
-                  </p>
+                  {bet.chimp_props?.expiry_date && (
+                    <p>
+                      Expires: {format(new Date(bet.chimp_props.expiry_date), 'PPP')}
+                    </p>
+                  )}
                   {propOdds[bet.prop_id] && (
                     <p className="font-medium text-yellow-900">
                       Your Odds: {bet.prediction ? propOdds[bet.prop_id].yesOdds : propOdds[bet.prop_id].noOdds}

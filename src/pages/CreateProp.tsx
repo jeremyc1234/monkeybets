@@ -43,8 +43,8 @@ export default function CreateProp() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <h1 className="text-3xl font-bold text-yellow-900 mb-8">Create New Chimp Prop</h1>
-      
+      <h1 className="text-3xl font-bold text-yellow-900 mb-8">Create New Banana Bet</h1>
+
       <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-lg p-6">
         <div className="space-y-6">
           <div>
