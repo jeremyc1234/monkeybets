@@ -55,11 +55,11 @@ export default function SharedPropView() {
           return;
         }
 
-        // If user is the creator, redirect to the prop details page
-        // if (user && data.creator_id === user.id) {
-        //   navigate(`/prop/${id}`);
-        //   return;
-        // }
+        //If user is the creator, redirect to the prop details page
+        if (user && data.creator_id === user.id) {
+          navigate(`/prop/${id}`);
+          return;
+        }
 
         setProp(data);
       } catch (err) {

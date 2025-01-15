@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 import { Share2, Trash2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../stores/auth';
+import BananaLoader from '../components/BananaLoader';
 
 interface ChimpProp {
   id: string;
@@ -238,8 +239,9 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-yellow-900">Loading your bets...</div>
+      <div className="flex flex-col items-center justify-center py-12">
+        <div className="text-yellow-900 mb-4">Loading your bets...</div>
+        <BananaLoader />
       </div>
     );
   }

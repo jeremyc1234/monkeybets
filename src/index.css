@@ -1,3 +1,18 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@keyframes banana {
+    from {
+        transform: translateX(-50px) rotate(0deg);
+    }
+
+    to {
+        transform: translateX(calc(100vw + 50px)) rotate(360deg);
+    }
+}
+
+.animate-banana {
+    font-size: 24px;
+    opacity: 0.7;
+}
