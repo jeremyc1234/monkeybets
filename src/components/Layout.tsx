@@ -8,18 +8,10 @@ export default function Layout() {
   const { signOut } = useAuth();
 
   return (
-    <div className="min-h-screen bg-yellow-50 z-50">
+    <div className="min-h-screen bg-yellow-50 z-500">
       <div className="relative">
         {/* Header Section */}
-        <nav
-          className="shadow-lg z-50"
-          style={{
-            backgroundImage: `url('/icon/HeaderLog.svg')`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            height: '4.5rem',
-          }}
-        >
+        <nav className="bg-yellow-400 shadow-lg z-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between h-16">
               <div className="flex items-center">

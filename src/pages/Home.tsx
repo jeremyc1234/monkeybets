@@ -240,7 +240,7 @@ export default function Home() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
-        <div className="text-yellow-900 mb-4">Loading your bets...</div>
+        <div className="text-yellow-900 mb-4">Loading your bets...🦧</div>
         <BananaLoader />
       </div>
     );
@@ -253,7 +253,7 @@ export default function Home() {
         {/* Created Props Section - Now shown first */}
         {createdProps.length > 0 && (
           <section>
-            <h2 className="text-2xl font-bold text-yellow-900 mb-6">Banana Props You've Created</h2>
+            <h2 className="text-2xl font-bold text-yellow-900 mb-6">Banana Props You&apos;ve Created</h2>
             {createdProps.length > 0 ? (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 relative z-10">
                 {createdProps.map((prop) => (
@@ -306,7 +306,7 @@ export default function Home() {
                         title={copyTooltip[prop.id]}
                       >
                         <Share2 className="h-5 w-5" />
-                        <span className="text-sm">Send to other monkeys</span>
+                        <span className="text-sm">Share with others 🐒</span>
                         <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                           {copyTooltip[prop.id]}
                         </span>
@@ -317,7 +317,7 @@ export default function Home() {
               </div>
             ) : (
               <div className="bg-white p-6 rounded-lg shadow-md text-center">
-                <p className="text-gray-600 mb-4">You haven't created any banana bets yet.</p>
+                <p className="text-gray-600 mb-4">You haven&apos;t created any banana bets yet.</p>
                 <Link
                   to="/create"
                   className="inline-block px-6 py-2 bg-yellow-400 text-yellow-900 rounded-md hover:bg-yellow-300 transition-colors"
