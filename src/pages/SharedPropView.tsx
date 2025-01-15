@@ -56,10 +56,10 @@ export default function SharedPropView() {
         }
 
         //If user is the creator, redirect to the prop details page
-        if (user && data.creator_id === user.id) {
-          navigate(`/prop/${id}`);
-          return;
-        }
+        // if (user && data.creator_id === user.id) {
+        //   navigate(`/prop/${id}`);
+        //   return;
+        // }
 
         setProp(data);
       } catch (err) {
@@ -241,6 +241,23 @@ export default function SharedPropView() {
             </button>
           </form>
         )}
+      </div>
+
+      {/* Playful Banana Wager Description Box */}
+      <div className="max-w-md w-full bg-yellow-100 border border-yellow-300 rounded-lg p-4 mt-6 shadow-sm">
+        <p className="text-yellow-800 mt-2 text-center">
+          <em>Your chimp friend sent this to you! 🐒</em>
+        </p>
+        <h2 className="text-xl font-bold text-yellow-900">What’s a Banana Wager? 🍌</h2>
+        <p className="text-yellow-800 mt-2">
+          "Ooh ooh ah ah! A Banana Wager is the most fun you&apos;ll have in the jungle, my friend! 🍌 It's like a little game where you bet bananas—yep, the most precious currency for us monkeys—on silly, wacky, and exciting predictions.
+        </p>
+        <p className="text-yellow-800 mt-2">
+          Think about it: &apos;Will the sun rise tomorrow wearing sunglasses?&apos; or &apos;Will the banana king eat 20 bananas in one sitting?&apos; You let us know!
+        </p>
+        <p className="text-yellow-800 mt-2">
+          To swing into the action, all you need is to put in what you think and sign in! Let the banana-filled chaos begin! Ooh ooh ah ah! 🎉🍌
+        </p>
       </div>
     </div>
   );

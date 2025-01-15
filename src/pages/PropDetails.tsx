@@ -50,7 +50,7 @@ export default function PropDetails() {
 
       const { data: betsData } = await supabase
         .from('bets')
-        .select('*')
+        .select('*, monkey_id')
         .eq('prop_id', id);
 
       if (betsData) {
@@ -113,12 +113,19 @@ export default function PropDetails() {
   const handleSetResult = async (result: boolean) => {
     if (!prop) return;
 
-    const { error } = await supabase
-      .from('chimp_props')
-      .update({ result })
-      .eq('id', prop.id);
+    try {
+      const { error } = await supabase
+        .from('chimp_props')
+        .update({ result })
+        .eq('id', prop.id);
 
-    if (error) {
+      if (error) {
+        setError('Failed to set result');
+      } else {
+        // Immediately update local state
+        setProp(prev => prev ? { ...prev, result } : null);
+      }
+    } catch (err) {
       setError('Failed to set result');
     }
   };
@@ -215,14 +222,23 @@ export default function PropDetails() {
         )}
 
         {prop.result !== null && (
-          <div className="mb-8">
+          <div className={`mb-8 p-6 rounded-lg ${prop.result ? 'bg-green-50' : 'bg-red-50'}`}>
             <h3 className="text-lg font-semibold mb-2">Result</h3>
-            <p className={prop.result ? 'text-green-600' : 'text-red-600'}>
+            <p className={prop.result ? 'text-green-600 font-semibold text-lg' : 'text-red-600 font-semibold text-lg'}>
               {prop.result ? 'Yes' : 'No'}
             </p>
+            {/* Add win/loss info for betters */}
+            {bets.map(bet => bet.monkey_id === user?.id && (
+              <p key={bet.id} className="mt-4">
+                {bet.prediction === prop.result ? (
+                  <span className="text-green-600">You won! 🎉</span>
+                ) : (
+                  <span className="text-red-600">Better luck next time! 🍌</span>
+                )}
+              </p>
+            ))}
           </div>
         )}
-
         {!isCreator && !isExpired && prop.result === null && (
           <form onSubmit={handleBet} className="space-y-4">
             <div>
@@ -234,8 +250,8 @@ export default function PropDetails() {
                   type="button"
                   onClick={() => setPrediction(true)}
                   className={`flex-1 py-2 px-4 rounded-md ${prediction === true
-                      ? 'bg-green-500 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-green-500 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                 >
                   Yes
@@ -244,8 +260,8 @@ export default function PropDetails() {
                   type="button"
                   onClick={() => setPrediction(false)}
                   className={`flex-1 py-2 px-4 rounded-md ${prediction === false
-                      ? 'bg-red-500 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-red-500 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                 >
                   No
